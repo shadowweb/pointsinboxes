@@ -8,6 +8,8 @@
 
 #include <uuid/uuid.h>
 
+#include "storage.h"
+
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
@@ -33,6 +35,18 @@ int main(int argc, char *argv[])
             if (mmappedData)
             {
                 printf("%s", (char *)mmappedData);
+                swStorage *storage = new swStorage();
+                if (storage)
+                {
+                    if (storage->mInited)
+                    {
+                        if (storage->findPointsInBoxes())
+                        {
+                            storage->printBoxes();
+                        }
+                    }
+                    delete storage;
+                }
                 if (munmap(mmappedData, fileSize) == -1)
                     handle_error("failed to munmap file\n");
             }
