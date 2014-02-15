@@ -10,7 +10,7 @@ make
 
 To generate input file run the following command:
 
-./generate-input-file <min x> <min y> <max x> <max y> <number of points> <number of boxes>
+./generate-input-file min_x min_y maxs_ x maxs_y number_of_points number_of_boxes
 
 example to generate 10 points and 5 boxes inside (-3, -3) and (6, 6) coordinates:
 
