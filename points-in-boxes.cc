@@ -31,18 +31,20 @@ int main(int argc, char *argv[])
         int fd = open(argv[1], O_RDONLY, 0);
         if (fd > -1)
         {
-            void *mmappedData = mmap(NULL, fileSize, PROT_READ, (MAP_PRIVATE | MAP_POPULATE), fd, 0);
+            char *mmappedData = (char *)mmap(NULL, fileSize, (PROT_READ | PROT_WRITE), (MAP_PRIVATE | MAP_POPULATE), fd, 0);
             if (mmappedData)
             {
-                printf("%s", (char *)mmappedData);
                 swStorage *storage = new swStorage();
                 if (storage)
                 {
                     if (storage->mInited)
                     {
-                        if (storage->findPointsInBoxes())
+                        if (storage->parse(mmappedData, fileSize))
                         {
-                            storage->printBoxes();
+                            if (storage->findPointsInBoxes())
+                            {
+                                storage->printBoxes();
+                            }
                         }
                     }
                     delete storage;

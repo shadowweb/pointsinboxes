@@ -45,6 +45,8 @@ public:
 private:
     size_t parsePoint(char *data, size_t offset, size_t size);
     size_t parseBox(char *data, size_t offset, size_t size);
+    void printPoint(swPoint *point);
+    void printBox(swBox *box);
 };
 
 #endif

@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <set>
 
 #include "storage.h"
 
@@ -54,7 +55,7 @@ static inline size_t readFloat(char *data, size_t offset, size_t size, double *o
     return rtn;
 }
 
-static size_t readUUID(char *data, size_t offset, size_t size, uuid_t uuid)
+static inline size_t readUUID(char *data, size_t offset, size_t size, uuid_t uuid)
 {
     size_t rtn = 0;
     if ((offset = skipWhiteSpace(data, offset, size)) < size)
@@ -62,8 +63,15 @@ static size_t readUUID(char *data, size_t offset, size_t size, uuid_t uuid)
         size_t readOffset = offset;
         while ((offset < size) && !isspace(data[offset]))
             offset++;
-        if ((offset - readOffset) == 36 && (uuid_parse(data, uuid) == 0))
-            rtn = offset;
+
+        if ((offset - readOffset) == 36)
+        {
+            char saveCharacter = data[offset];
+            data[offset] = '\0';
+            if (uuid_parse(&data[readOffset], uuid) == 0)
+                rtn = offset;
+            data[offset] = saveCharacter;
+        }
     }
     return rtn;
 }
@@ -71,7 +79,7 @@ static size_t readUUID(char *data, size_t offset, size_t size, uuid_t uuid)
 size_t swStorage::parsePoint(char *data, size_t offset, size_t size)
 {
     size_t rtn = 0;
-    if (data && offset && size && mInited)
+    if (data && size && mInited)
     {
         if ((offset = readFloat(data, offset, size, &(mPoints[mPointsCount].mCoordinate.mX))) && (offset < size))
         {
@@ -104,7 +112,7 @@ size_t swStorage::parsePoint(char *data, size_t offset, size_t size)
 size_t swStorage::parseBox(char *data, size_t offset, size_t size)
 {
     size_t rtn = 0;
-    if (data && offset && size && mInited)
+    if (data && size && mInited)
     {
         if ((offset = readFloat(data, offset, size, &(mBoxes[mBoxesCount].mMinPoint.mX))) && (offset < size))
         {
@@ -116,20 +124,6 @@ size_t swStorage::parseBox(char *data, size_t offset, size_t size)
                     {
                         swapForMax(mBoxes[mBoxesCount].mMinPoint.mX, mBoxes[mBoxesCount].mMaxPoint.mX);
                         swapForMax(mBoxes[mBoxesCount].mMinPoint.mY, mBoxes[mBoxesCount].mMaxPoint.mY);
-                        /*
-                        if (mBoxes[mBoxesCount].mMinPoint.mX > mBoxes[mBoxesCount].mMaxPoint.mX)
-                        {
-                            double tmp = mBoxes[mBoxesCount].mMinPoint.mX;
-                            mBoxes[mBoxesCount].mMinPoint.mX = mBoxes[mBoxesCount].mMaxPoint.mX;
-                            mBoxes[mBoxesCount].mMaxPoint.mX = tmp;
-                        }
-                        if (mBoxes[mBoxesCount].mMinPoint.mY > mBoxes[mBoxesCount].mMaxPoint.mY)
-                        {
-                            double tmp = mBoxes[mBoxesCount].mMinPoint.mY;
-                            mBoxes[mBoxesCount].mMinPoint.mY = mBoxes[mBoxesCount].mMaxPoint.mY;
-                            mBoxes[mBoxesCount].mMaxPoint.mY = tmp;
-                        }
-                        */
                         mBoxes[mBoxesCount].mPoints = NULL;
                         mBoxesCount++;
                         if (mBoxesCount < mBoxesSize)
@@ -177,12 +171,67 @@ bool swStorage::parse(char *data, size_t size)
     return rtn;
 }
 
+#define BOX_MIN 0x01
+#define BOX_MAX 0x02
+
+// TODO: finish this
+struct coordinateCompare
+{
+    bool operator() (const swCoordinate *lhs, const swCoordinate *rhs) const
+    {
+        swCoordinate *realLhs = lhs & ~(BOX_MIN && BOX_MAX);
+        swCoordinate *realRhs = rhs & ~(BOX_MIN && BOX_MAX);
+        if (realLhs < realRhs)
+            return true;
+        if (realLhs == realRhs)
+        {
+            if (lhs & BOX_MIN)
+                return ((rhs & BOX_MIN)? false : true);
+            else if (lhs & BOX_MAX)
+                return false;
+        }
+        return false;
+    }
+};
+
+set<swCoordinate *, coordinateCompare> s;
+
+
 bool swStorage::findPointsInBoxes()
 {
+    set<swCoordinate *, coordinateCompare> xSet;
+    set<swCoordinate *, coordinateCompare> ySet;
     return true;
+}
+
+void swStorage::printPoint(swPoint *point)
+{
+    if (point)
+    {
+        char uuidString[37] = {0};
+        uuid_unparse(point->mId, uuidString);
+        printf("point %f %f %s\n", point->mCoordinate.mX, point->mCoordinate.mY, uuidString);
+    }
+}
+
+void swStorage::printBox(swBox *box)
+{
+    if (box)
+    {
+        printf("box %f %f %f %f\n", box->mMinPoint.mX, box->mMinPoint.mY, box->mMaxPoint.mX, box->mMaxPoint.mY);
+        if (box->mPoints)
+        {
+            for (vector<swPoint *>::iterator it = box->mPoints->begin(); it != box->mPoints->end(); it++)
+                printPoint(*it);
+        }
+    }
 }
 
 void swStorage::printBoxes()
 {
+    for (size_t i = 0; i < mPointsCount; i++)
+        printPoint(&mPoints[i]);
+    for (size_t i = 0; i < mBoxesCount; i++)
+        printBox(&mBoxes[i]);
     return;
 }
