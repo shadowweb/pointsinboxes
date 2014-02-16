@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
                     {
                         if (storage->parse(mmappedData, fileSize))
                         {
-                            if (storage->findPointsInBoxes())
+                            // if (storage->findPointsInBoxesAlt())
+                            if (storage->findPointsInBoxesAlt())
                             {
                                 storage->printBoxes();
                             }

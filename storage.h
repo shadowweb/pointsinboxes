@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <uuid/uuid.h>
 
+#include <unordered_set>
 #include <vector>
 
 using namespace std;
@@ -24,6 +25,7 @@ typedef struct swBox
 {
     swCoordinate mMinPoint;
     swCoordinate mMaxPoint;
+    unordered_set<swPoint *> *mCandidates;
     vector<swPoint *> *mPoints;
 } swBox;
 
@@ -34,6 +36,7 @@ public:
     ~swStorage();
     bool parse(char *data, size_t size);
     bool findPointsInBoxes();
+    bool findPointsInBoxesAlt();
     void printBoxes();
     swPoint *mPoints;
     swBox *mBoxes;
