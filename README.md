@@ -125,4 +125,4 @@ Additional Information
 ======================
 
 As it turns out the example result in the problem statement is not entirely correct. The last box is missing point id:
-b09dbbc7-4ddb-4cb4-9b06-6fe24a3ee1e2 as it should be also inside this box.
+'b09dbbc7-4ddb-4cb4-9b06-6fe24a3ee1e2' as it should be also inside this box.
