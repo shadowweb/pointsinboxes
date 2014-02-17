@@ -48,10 +48,10 @@ int main(int argc, char *argv[])
                 uint64_t mapTime = getCurrentTime();
                 uint64_t diffTime = mapTime - startTime;
                 fprintf (stderr, "Mapping file to memory took: %ld.%09ld seconds\n", diffTime/NSEC_IN_SEC, diffTime%NSEC_IN_SEC);
-                swStorage *storage = new swStorage();
+                swStorage *storage = new swStorage(fileSize/40, 256);
                 if (storage)
                 {
-                    if (storage->mInited)
+                    if (storage->isInited())
                     {
                         if (storage->parse(mmappedData, fileSize))
                         {

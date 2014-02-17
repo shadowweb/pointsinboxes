@@ -6,7 +6,7 @@
 
 #include "storage.h"
 
-swStorage::swStorage() : mPoints(NULL), mBoxes(NULL), mPointsCount(0), mBoxesCount(0), mPointsSize(1024), mBoxesSize(32), mInited(false)
+swStorage::swStorage(size_t points, size_t boxes) : mPoints(NULL), mBoxes(NULL), mPointsCount(0), mBoxesCount(0), mPointsSize(points), mBoxesSize(boxes), mInited(false)
 {
     if ((mPoints = (swPoint *)malloc(sizeof(swPoint) * mPointsSize)))
     {
@@ -21,8 +21,6 @@ swStorage::~swStorage()
     {
         for (size_t i = 0; i < mBoxesCount; i++)
         {
-            if (mBoxes[i].mCandidates)
-                delete mBoxes[i].mCandidates;
             if (mBoxes[i].mPoints)
                 delete mBoxes[i].mPoints;
         }
@@ -32,75 +30,76 @@ swStorage::~swStorage()
         free(mPoints);
 }
 
-static inline size_t skipWhiteSpace(char *data, size_t offset, size_t size)
+static inline char *skipWhiteSpace(char *ptr, char *endPtr)
 {
-    while (offset < size)
+    while (ptr < endPtr)
     {
-        if (isspace(data[offset]))
-            offset++;
+        if (isspace(*ptr))
+            ptr++;
         else
             break;
     }
-    return offset;
+    return ptr;
 }
 
-static inline size_t readFloat(char *data, size_t offset, size_t size, double *out)
+static inline char *readFloat(char *ptr, char *endPtr, double *out)
 {
-    size_t rtn = 0;
-    if ((offset = skipWhiteSpace(data, offset, size)) < size)
+    char *rtn = NULL;
+    if ((ptr = skipWhiteSpace(ptr, endPtr)) < endPtr)
     {
-        size_t readOffset = offset;
-        while ((offset < size) && !isspace(data[offset]))
-            offset++;
-        if (sscanf(&data[readOffset], "%lf", out))
-            rtn = offset;
+        char *readPtr = ptr;
+        while ((ptr < endPtr) && !isspace(*ptr))
+            ptr++;
+        if (sscanf(readPtr, "%lf", out))
+            rtn = ptr;
     }
     return rtn;
 }
 
-static inline size_t readUUID(char *data, size_t offset, size_t size, uuid_t uuid)
+static inline char *readUUID(char *ptr, char *endPtr, uuid_t uuid)
 {
-    size_t rtn = 0;
-    if ((offset = skipWhiteSpace(data, offset, size)) < size)
+    char *rtn = NULL;
+    if ((ptr = skipWhiteSpace(ptr, endPtr)) < endPtr)
     {
-        size_t readOffset = offset;
-        while ((offset < size) && !isspace(data[offset]))
-            offset++;
+        char *readPtr = ptr;
+        while ((ptr < endPtr) && !isspace(*ptr))
+            ptr++;
 
-        if ((offset - readOffset) == 36)
+        if ((ptr - readPtr) == 36)
         {
-            char saveCharacter = data[offset];
-            data[offset] = '\0';
-            if (uuid_parse(&data[readOffset], uuid) == 0)
-                rtn = offset;
-            data[offset] = saveCharacter;
+            char saveCharacter = *ptr;
+            *ptr = '\0';
+            if (uuid_parse(readPtr, uuid) == 0)
+                rtn = ptr;
+            *ptr = saveCharacter;
         }
     }
     return rtn;
 }
 
-size_t swStorage::parsePoint(char *data, size_t offset, size_t size)
+char *swStorage::parsePoint(char *ptr, char *endPtr)
 {
-    size_t rtn = 0;
-    if (data && size && mInited)
+    char *rtn = NULL;
+    if (ptr && endPtr && mInited)
     {
-        if ((offset = readFloat(data, offset, size, &(mPoints[mPointsCount].mCoordinate.mX))) && (offset < size))
+        if ((ptr = readFloat(ptr, endPtr, &(mPoints[mPointsCount].mCoordinate.mX))) && (ptr < endPtr))
         {
-            if ((offset = readFloat(data, offset, size, &(mPoints[mPointsCount].mCoordinate.mY))) && (offset < size))
+            if ((ptr = readFloat(ptr, endPtr, &(mPoints[mPointsCount].mCoordinate.mY))) && (ptr < endPtr))
             {
-                if ((offset = readUUID(data, offset, size, mPoints[mPointsCount].mId)) && (offset < size))
+                if ((ptr = readUUID(ptr, endPtr, mPoints[mPointsCount].mId)) && (ptr < endPtr))
                 {
                     mPointsCount++;
                     if (mPointsCount < mPointsSize)
-                        rtn = offset;
+                        rtn = ptr;
                     else
                     {
+                        fprintf(stderr, "point realloc\n");
                         swPoint *newPoints = (swPoint *)realloc(mPoints, sizeof(swPoint) * mPointsSize * 2);
                         if (newPoints)
                         {
                             mPoints = newPoints;
                             mPointsSize *= 2;
-                            rtn = offset;
+                            rtn = ptr;
                         }
                     }
                 }
@@ -112,35 +111,34 @@ size_t swStorage::parsePoint(char *data, size_t offset, size_t size)
 
 #define swapForMax(a, b) if ((a) > (b)) { double tmp = (a); (a) = (b); (b) = tmp; }
 
-size_t swStorage::parseBox(char *data, size_t offset, size_t size)
+char *swStorage::parseBox(char *ptr, char *endPtr)
 {
-    size_t rtn = 0;
-    if (data && size && mInited)
+    char *rtn = 0;
+    if (ptr && endPtr && mInited)
     {
-        // printStorage(__func__, this);
-        if ((offset = readFloat(data, offset, size, &(mBoxes[mBoxesCount].mMinPoint.mX))) && (offset < size))
+        if ((ptr = readFloat(ptr, endPtr, &(mBoxes[mBoxesCount].mMinPoint.mX))) && (ptr < endPtr))
         {
-            if ((offset = readFloat(data, offset, size, &(mBoxes[mBoxesCount].mMinPoint.mY))) && (offset < size))
+            if ((ptr = readFloat(ptr, endPtr, &(mBoxes[mBoxesCount].mMinPoint.mY))) && (ptr < endPtr))
             {
-                if ((offset = readFloat(data, offset, size, &(mBoxes[mBoxesCount].mMaxPoint.mX))) && (offset < size))
+                if ((ptr = readFloat(ptr, endPtr, &(mBoxes[mBoxesCount].mMaxPoint.mX))) && (ptr < endPtr))
                 {
-                    if ((offset = readFloat(data, offset, size, &(mBoxes[mBoxesCount].mMaxPoint.mY))) && (offset < size))
+                    if ((ptr = readFloat(ptr, endPtr, &(mBoxes[mBoxesCount].mMaxPoint.mY))) && (ptr < endPtr))
                     {
                         swapForMax(mBoxes[mBoxesCount].mMinPoint.mX, mBoxes[mBoxesCount].mMaxPoint.mX);
                         swapForMax(mBoxes[mBoxesCount].mMinPoint.mY, mBoxes[mBoxesCount].mMaxPoint.mY);
-                        mBoxes[mBoxesCount].mCandidates = new unordered_set<swPoint *>;
                         mBoxes[mBoxesCount].mPoints = new vector<swPoint *>;
                         mBoxesCount++;
                         if (mBoxesCount < mBoxesSize)
-                            rtn = offset;
+                            rtn = ptr;
                         else
                         {
+                            fprintf(stderr, "box realloc\n");
                             swBox *newBoxes = (swBox *)realloc(mBoxes, sizeof(swBox) * mBoxesSize * 2);
                             if (newBoxes)
                             {
                                 mBoxes = newBoxes;
                                 mBoxesSize *= 2;
-                                rtn = offset;
+                                rtn = ptr;
                             }
                         }
                     }
@@ -156,21 +154,22 @@ bool swStorage::parse(char *data, size_t size)
     bool rtn = false;
     if (data && size)
     {
-        size_t offset = 0;
-        while ((offset = skipWhiteSpace(data, offset, size)) < size)
+        char *ptr = data;
+        char *endPtr = data + size;
+        while ((ptr = skipWhiteSpace(ptr, endPtr)) < endPtr)
         {
-            if (data[offset] == 'p')
+            if (*ptr == 'p')
             {
-                if ((offset = parsePoint(data, offset+5, size)))
+                if ((ptr = parsePoint(ptr + 5, endPtr)))
                     continue;
             }
-            else if (data[offset] == 'b')
+            else if (*ptr == 'b')
             {
-                if ((offset = parseBox(data, offset+3, size)))
+                if ((ptr = parseBox(ptr+3, endPtr)))
                     continue;
             }
         }
-        if (offset >= size)
+        if (ptr >= endPtr)
             rtn = true;
     }
     return rtn;

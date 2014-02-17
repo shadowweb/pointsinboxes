@@ -110,16 +110,21 @@ Initially I thought that finding the points in the boxes is the going to be the 
 So, I focused my attention on finding the best performing algorithm. So, when I finally settled down on the one
 that performs the best of all, it turned out that the algorithm to find points in the boxes does not take much time
 compared to the time it takes to parse the input file. It was especially apparent when I generated the data set of
-100000 points and 100 boxes. It takes close to 30 seconds to parse this file when the file is fully memory mapped.
+100000 points and 100 boxes. It takes close to 30 seconds to parse this file even when the file is fully memory mapped.
 The time it takes to do everything else is negligible. Here is an example of the my diagnostic output for this big
 data set:
 
 ```
-Mapping file to memory took: 0.004286562 seconds
-Parsing file from memory took: 30.833523657 seconds
-Processing data took: 0.222577624 seconds
-Printing results took: 0.803702772 seconds
+Mapping file to memory took: 0.005725588 seconds
+Parsing file from memory took: 30.792123319 seconds
+Processing data took: 0.224246257 seconds
+Printing results took: 0.804919694 seconds
 ```
+
+I've spent some time trying to optimize parsing part, but in the interest of completing this assignment on time,
+I've decided not to spend too much time on it. I am sure there is some room for improvement. It is just I do not have
+a solution for it at the moment.
+
 
 Additional Information
 ======================

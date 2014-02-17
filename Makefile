@@ -15,7 +15,7 @@ generate-input-file.o: generate-input-file.c
 points-in-boxes: points-in-boxes.o storage.o
 	$(CC) -o $@ $^ -g -luuid -lstdc++ -lrt
 
-points-in-boxes.o: points-in-boxes.cc
+points-in-boxes.o: points-in-boxes.cc storage.h
 	$(CCC) -c $(CCFLAGS) $(ALL_INCS) -o $@ $<
 
 storage.o: storage.cc storage.h
