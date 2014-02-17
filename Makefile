@@ -7,13 +7,13 @@ CPP =   cc -E
 all: generate-input-file points-in-boxes
 
 generate-input-file: generate-input-file.o
-	$(CC) -o $@ $^ -luuid
+	$(CC) -o $@ $^ -g -luuid
 
 generate-input-file.o: generate-input-file.c
 	$(CC) -c $(CFLAGS) $(ALL_INCS) -o $@ $<
 
 points-in-boxes: points-in-boxes.o storage.o
-	$(CC) -o $@ $^ -luuid -lstdc++
+	$(CC) -o $@ $^ -g -luuid -lstdc++ -lrt
 
 points-in-boxes.o: points-in-boxes.cc
 	$(CCC) -c $(CCFLAGS) $(ALL_INCS) -o $@ $<

@@ -36,8 +36,8 @@ public:
     ~swStorage();
     bool parse(char *data, size_t size);
     bool findPointsInBoxes();
-    bool findPointsInBoxesAlt();
     void printBoxes();
+private:
     swPoint *mPoints;
     swBox *mBoxes;
     size_t mPointsCount;
@@ -45,7 +45,7 @@ public:
     size_t mPointsSize;
     size_t mBoxesSize;
     unsigned mInited : 1;
-private:
+
     size_t parsePoint(char *data, size_t offset, size_t size);
     size_t parseBox(char *data, size_t offset, size_t size);
     void printPoint(swPoint *point);
