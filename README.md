@@ -13,6 +13,7 @@ You are given a text file. The file consists of two types of lines:
 
 For example:
 
+```
 point 7.08 0.64 358b7990-387c-43a5-92d8-b454a727bf63
 point -8.87 -1.00 172e5c20-041a-441b-a036-59fa08c48525
 point 7.23 1.92 ea1dd912-b4a2-490a-8969-65e45d25e7cf
@@ -32,6 +33,7 @@ point 0.32 -9.42 605714b1-b537-49cb-8e0b-4ce6c1b8e208
 point 3.60 -5.93 948b23d9-47aa-4121-b7fb-3f23e7dff259
 box -3.1 -8.9 3.5 6.6
 point -2.43 1.36 b09dbbc7-4ddb-4cb4-9b06-6fe24a3ee1e2
+```
 
 A point line should be interpreted as a point in a plane where the
 first number represents the point's x coordinate, the second number
@@ -47,6 +49,7 @@ that appeared before the line.
 
 For example for above file the program should print:
 
+```
 box 7 0 8 2
 358b7990-387c-43a5-92d8-b454a727bf63
 ea1dd912-b4a2-490a-8969-65e45d25e7cf
@@ -57,6 +60,7 @@ box -3.1 -8.9 3.5 6.6
 fd5d0ff6-e7ad-4992-b237-56f3b4da75e8
 da7790e3-4904-44a5-a02f-0384fcaef902
 b8537460-7d63-4ff1-b3a4-f5abbbbc8a16
+```
 
 Your implementation should assume that the number of points is much
 higher than the number of boxes. You should aim for a time-efficient
@@ -78,19 +82,19 @@ This implementation builds and runs on Ubuntu Linux. It has not been tested on a
 
 To build, run:
 
-make
+    make
 
 To generate input file run the following command:
 
-./generate-input-file min_x min_y maxs_ x maxs_y number_of_points number_of_boxes
+    ./generate-input-file min_x min_y maxs_ x maxs_y number_of_points number_of_boxes
 
 example to generate 10 points and 5 boxes inside (-3, -3) and (6, 6) coordinates:
 
-./generate-input-file -3 -3 6 6 10 5
+    ./generate-input-file -3 -3 6 6 10 5
 
 This will generate output file in data.out file. To run the program with this data file do the following:
 
-./points-in-boxes data.out > outputfile
+    ./points-in-boxes data.out > outputfile
 
 Input File Format
 =================
@@ -110,10 +114,12 @@ compared to the time it takes to parse the input file. It was especially apparen
 The time it takes to do everything else is negligible. Here is an example of the my diagnostic output for this big
 data set:
 
+```
 Mapping file to memory took: 0.004286562 seconds
 Parsing file from memory took: 30.833523657 seconds
 Processing data took: 0.222577624 seconds
 Printing results took: 0.803702772 seconds
+```
 
 Additional Information
 ======================
